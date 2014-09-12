@@ -1,0 +1,32 @@
+.slider {
+    margin: 10px 20px 0px 20px;
+}
+.switch {
+    margin: 10px 20px 0px 20px;
+}
+.label {
+    display: table-cell;
+    margin-right: 20px;
+}
+.value {
+    display: table-cell;
+    margin-left: 20px;
+}
+.row
+{
+    display: table-row;
+}
+.modelabel {
+    font-size: 75%;
+}
+.axis path,
+.axis line {
+    fill: none;
+    stroke: grey;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+.plot {
+    width: 700px;
+    height: 500px;
+}

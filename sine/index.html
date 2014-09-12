@@ -1,0 +1,56 @@
+<html>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+<link rel="stylesheet" href="style.css">
+
+<script lang="text/javascript" src="//code.jquery.com/jquery-2.1.1.js"></script>
+<script lang="text/javascript" src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+<script lang="text/javascript" src="//mipt.ru/upload/crec/jquery.flot.js"></script>
+<body>
+
+<div class="row">
+    <div class="label">Отрезок, [a,b]</div>
+    <div id="slider_ab" class="slider"></div>
+    <div class="value">[<span id="a">0</span>,<span id="b">0</span>]</div>
+</div>
+<div class="row">
+    <div class="label">Режим работы</div>
+    <div id="mode" class="switch">
+        <input type="radio" id="mainterr" name="radio" /><label for="mainterr" class="modelabel">Обеспечить заданную точность</label>
+        <input type="radio" id="fixedn" name="radio" /><label for="fixedn" class="modelabel">Суммировать заданное число членов</label>
+    </div>
+    <div class="value"></div>
+</div>
+<div id="selectn" class="row">
+    <div class="label">Число членов ряда, n</div>
+    <div id="slider_n" class="slider"></div>
+    <span id="n" class="value">0</span>
+</div>
+<div id="selecteps" class="row">
+    <div class="label">Точность, &epsilon;</div>
+    <div id="slider_eps" class="slider"></div>
+    <div class="value">10<sup><span id="lgeps">0</span></sup></div>
+</div>
+<div id="selectK" class="row">
+    <div class="label">Бит в мантиссе, K</div>
+    <div id="slider_K" class="slider"></div>
+    <span id="K" class="value">0</span>
+</div>
+<div class="row">
+    <div class="label">Показывать</div>
+    <div id="show" class="switch">
+        <input type="radio" id="graphs" name="radio2" /><label for="graphs" class="modelabel">Графики</label>
+        <input type="radio" id="difference" name="radio2" /><label for="difference" class="modelabel">Модуль разности</label>
+    </div>
+    <div class="value"></div>
+</div>
+<div id="plot" class="plot">
+</div>
+
+<script lang="text/javascript" src="app.js"></script>
+
+</body>
+
+</html>
