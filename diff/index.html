@@ -1,0 +1,59 @@
+<html>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+<link rel="stylesheet" href="style.css">
+
+<script lang="text/javascript" src="//code.jquery.com/jquery-2.1.1.js"></script>
+<script lang="text/javascript" src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+<script lang="text/javascript" src="//mipt.ru/upload/crec/jquery.flot.js"></script>
+<body>
+
+<div class="row">
+    <div class="label">Отрезок, [a,b]</div>
+    <div id="slider_ab" class="slider"></div>
+    <div class="value">[<span id="a">0</span>,<span id="b">0</span>]</div>
+</div>
+<div class="row">
+    <div class="label">Порядок формулы дифференцирования</div>
+    <div id="mode" class="switch">
+        <input type="radio" id="firstord" name="radio" /><label for="firstord" class="modelabel">Первый</label>
+        <input type="radio" id="secondord" name="radio" /><label for="secondord" class="modelabel">Второй</label>
+        <input type="radio" id="thirdord" name="radio" /><label for="thirdord" class="modelabel">Третий</label>
+        <input type="radio" id="fourthord" name="radio" /><label for="fourthord" class="modelabel">Четвертый</label>
+    </div>
+    <div class="value"></div>
+</div>
+<div id="viewformula" class="row">
+    <img id="formula" class="inlineformula"></img>
+    <div class="dummyformula">&nbsp;</div>
+    <div class="dummyformula">&nbsp;</div>
+</div>
+<div id="selecth" class="row">
+    <div class="label">Шаг дифференцирования, h</div>
+    <div id="slider_h" class="slider"></div>
+    <div class="value">10<sup><span id="lgh">0</span></sup></div>
+</div>
+<div id="selectK" class="row">
+    <div class="label">Бит в мантиссе, K</div>
+    <div id="slider_K" class="slider"></div>
+    <span id="K" class="value">0</span>
+</div>
+<div class="row">
+    <div class="label">Показывать</div>
+    <div id="show" class="switch">
+        <input type="radio" id="graph" name="radio2" /><label for="graph" class="modelabel">Графики</label>
+        <input type="radio" id="difference" name="radio2" /><label for="difference" class="modelabel">Модуль разности</label>
+        <input type="radio" id="point" name="radio2" /><label for="point" class="modelabel">Ошибка в точке</label>
+    </div>
+    <div class="value"></div>
+</div>
+<div id="plot" class="plot">
+</div>
+
+<script lang="text/javascript" src="app.js"></script>
+
+</body>
+
+</html>

@@ -23,3 +23,14 @@
     width: 700px;
     height: 500px;
 }
+.inlineformula {
+    padding-left: 10em;
+    padding-top: 1ex;
+    padding-bottom: 1ex;
+    height: 5ex;
+    position: absolute;
+}
+.dummyformula {
+    height:7ex;
+    display: table-cell;
+}
