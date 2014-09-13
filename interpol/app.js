@@ -4,6 +4,8 @@
 function Model() {
     var M = 1000;
     this.randy = new Array(500);
+    this.xk = new Array(500);
+    this.yk = new Array(500);
     this.x = new Array(M + 1);
     this.func = new Array(M + 1);
     this.inter = new Array(M + 1);
@@ -71,6 +73,8 @@ function Model() {
             this.grid = Object.keys(this.avaliable_methods[this.mode])[0];
         if ($.inArray(this.method, this.avaliable_methods[this.mode][this.grid]) == -1)
             this.method = this.avaliable_methods[this.mode][this.grid][0];
+        if (this.mode == "trig" && this.show == "omega")
+            this.show = "graph";
     };
     this.set_grid = function(v) {
         if ($.inArray(v, Object.keys(this.avaliable_methods[this.mode])) >= 0)
@@ -86,8 +90,11 @@ function Model() {
         if (id >= 0 && id < this.funcs.length)
             this.funcid = id;
     };
-    this.show_graph = function (v) {
-        this.showgraph = v;
+    this.show_mode = function (v) {
+        if (v == "graph" || v == "difference" || v == "lebesgue")
+            this.show = v;
+        if (v == "omega" && this.mode != "trig")
+            this.show = "omega";
     };
     this.dropdigits = function (v) {
         this.fl[0] = v;
@@ -96,22 +103,113 @@ function Model() {
 
         return this.fl[0];
     };
+    this.make_grid = function () {
+        var bias = .3;
+        var i, k, h;
+        var sum;
+        if (this.grid == "random" && this.mode == "poly") {
+            sum = 0;
+            for (i = 0; i < this.n - 1; i++)
+                sum += bias + this.randy[i];
+            k = (this.b - this.a) / sum;
+            this.xk[0] = this.a;
+            for (i = 0; i < this.n - 1; i++)
+                this.xk[i+1] = this.xk[i] + k * (bias + this.randy[i]);
+        }
+        if (this.grid == "random" && this.mode == "trig") {
+            sum = 0;
+            for (i = 0; i < this.n; i++)
+                sum += bias + this.randy[i];
+            k = (this.b - this.a) / sum;
+            this.xk[0] = this.a + 0.5 * k * (bias + this.randy[this.n - 1]);
+            for (i = 0; i < this.n - 1; i++)
+                this.xk[i+1] = this.xk[i] + k * (bias + this.randy[i]);
+        }
+        if (this.grid == "uniform" && this.mode == "poly") {
+            h = (this.b - this.a) / (this.n - 1);
+            this.xk[0] = this.a;
+            for (i = 0; i < this.n - 1; i++)
+                this.xk[i+1] = this.xk[i] + h;
+        }
+        if (this.grid == "uniform" && this.mode == "trig") {
+            h = (this.b - this.a) / (this.n);
+            this.xk[0] = this.a + 0.5 * h;
+            for (i = 0; i < this.n - 1; i++)
+                this.xk[i+1] = this.xk[i] + h;
+        }
+        if (this.grid == "chebyshev") {
+            var c = (this.a + this.b) / 2;
+            var s = (this.b - this.a) / 2;
+            for (i = 0; i < this.n; i++)
+                this.xk[i] = c - s * Math.cos((2 * i + 1) * Math.PI / (2 * this.n))
+        }
+    };
+    this.poly_slae = function() {
+        var M = [], b = [];
+        var i, j;
+        for (i = 0; i < this.n; i++) {
+            var row = [1];
+            for (j = 1; j < this.n; j++)
+                row.push(row[j-1] * this.xk[i]);
+            M[i] = row;
+            b[i] = this.yk[i];
+        }
+        var c = numeric.solve(M, b);
+        var model = this;
+
+        return function(x) {
+            var sum = model.dropdigits(c[0]);
+            var k;
+            var z = model.dropdigits(x);
+            var q = z;
+            for (k = 1; k < c.length; k++) {
+                sum += model.dropdigits(z * c[k]);
+                z *= q;
+            }
+            return sum;
+        }
+    };
+    this.compute_interpolant = function () {
+        if (this.mode == "poly") {
+            if (this.method == "slae")
+                return this.poly_slae();
+/*            if (this.method == "lagrange")
+                this.poly_lagrange();
+            if (this.method == "newtonleft")
+                this.newton(true);
+            if (this.method == "newtonright")
+                this.newton(right);
+            if (this.method == "special" && this.grid == "chebyshev")
+                this.cheb();*/
+        }
+    };
     this.recompute = function () {
         var M = this.x.length - 1;
         var h = (this.b0 - this.a0) / M;
 
         var f = this.funcs[this.funcid].f;
 
-        var a = this.a;
-        var b = this.b;
-        var fa = f(a);
-        var fb = f(b);
+        this.make_grid();
+        var i, x;
 
-        for (var i = 0; i < this.x.length; i++) {
-            var x = this.a0 + i * h;
+        for (i = 0; i < this.n; i++) {
+            x = this.xk[i];
+            this.yk[i] = f(x);
+        }
+
+        var P = this.compute_interpolant();
+
+        for (i = 0; i < this.x.length; i++) {
+            x = this.a0 + i * h;
             this.x[i] = x;
+            if (this.mode == "trig") {
+                if (x < this.a)
+                    x += this.b - this.a;
+                if (x > this.b)
+                    x -= this.b - this.a;
+            }
             this.func[i] = f(x);
-            this.inter[i] = fa + (fb - fa) / (b - a) * (x - a);
+            this.inter[i] = P(x);
         }
     };
     this.set_ab(-1, 1);
@@ -120,6 +218,9 @@ function Model() {
     this.funcs = [
         { text: "sin x", f: function (x) {
             return Math.sin(x);
+        } },
+        { text: "sin &pi;x", f: function (x) {
+            return Math.sin(Math.PI * x);
         } },
         { text: "sin &pi;x&sup3;", f: function (x) {
             return Math.sin(Math.PI * x * x * x);
@@ -133,14 +234,14 @@ function Model() {
         { text: "|x|x&sup2;", f: function (x) {
             return Math.abs(x) * x * x;
         } },
-        { text: "exp(-x&sup2;)", f: function (x) {
+        { text: "exp(-25x&sup2;)", f: function (x) {
             return Math.exp(-25 * x * x);
         } },
         { text: "1/(1+25x&sup2;)", f: function (x) {
             return 1 / (1 + 25 * x * x);
         } }
     ];
-    this.show_graph(true);
+    this.show_mode("graph");
     this.set_funcid(1);
 
     this.mode = "poly";
@@ -169,34 +270,51 @@ function View(model, controls) {
         var fdata = [];
         var idata = [];
         var ddata = [];
+        var nodes = [];
 
-        for (var i = 0; i < this.model.x.length; i++) {
-            fdata.push([this.model.x[i], this.model.func[i]]);
-            idata.push([this.model.x[i], this.model.inter[i]]);
-            ddata.push([this.model.x[i], Math.abs(this.model.func[i] - this.model.inter[i])]);
+        var i, x;
+        var maxdiff = 0;
+
+        for (i = 0; i < this.model.x.length; i++) {
+            x = this.model.x[i];
+            fdata.push([x, this.model.func[i]]);
+            idata.push([x, this.model.inter[i]]);
+
+            var diff = Math.abs(this.model.func[i] - this.model.inter[i]);
+            if (x > this.model.a && x < this.model.b && diff > maxdiff)
+                maxdiff = diff;
+            ddata.push([x, diff]);
         }
+        for (i = 0; i < this.model.n; i++)
+            nodes.push([this.model.xk[i], this.model.yk[i]]);
 
-        if (this.model.showgraph)
+        if (this.model.show == "lebesgue" || this.model.show == "omega")
+            $("#plot").hide();
+        else
+            $("#plot").show();
+        if (this.model.show == "graph")
             $.plot($("#plot"), [
                     { label: this.model.funcs[this.model.funcid].text, data: fdata },
-                    { label: "Интерполянт", data: idata }
+                    { label: "Интерполянт", data: idata },
+                    { label: "Узлы интерполяции", data: nodes, points: { show: true }}
                 ],
                 {
-                    xaxis: { min: this.model.a0, max: this.model.b0 },
                     yaxis: { min: -3, max: 3 },
                     grid: { markings: [
                         {xaxis: {from: this.model.a0, to: this.model.a}},
                         {xaxis: {to: this.model.b0, from: this.model.b}}
                     ] }
                 });
-        else
+        if (this.model.show == "difference")
             $.plot($("#plot"), [
                     { label: "Модуль разности", data: ddata }
                 ],
                 {
                     yaxis: {
+                        min: 0,
+                        max: maxdiff * 1.1,
                         tickFormatter: function (v, axis) {
-                            var pow = Math.floor(Math.log(axis.max) * Math.LOG10E);
+                            var pow = Math.floor(Math.log(maxdiff) * Math.LOG10E);
                             var scale = Math.pow(10, pow);
                             return (v / scale).toFixed(1) + '&middot;10<sup>' + pow + '</sup>';
                         }
@@ -213,7 +331,6 @@ function View(model, controls) {
 function Controller(model) {
     this.model = model;
     this.update = function () {
-        console.log(this.model);
         $("#slider_ab").slider("option", "values", [this.model.a, this.model.b]);
         $("#slider_n").slider("option", "value", this.model.n);
         $("#slider_K").slider("option", "value", this.model.K);
@@ -223,11 +340,7 @@ function Controller(model) {
         $("#" + this.model.mode).trigger("click");
         $("#" + this.model.grid).trigger("click");
         $("#" + this.model.method).trigger("click");
-
-        if (this.model.showgraph)
-            $("#graphs").trigger("click");
-        else
-            $("#difference").trigger("click");
+        $("#" + this.model.show).trigger("click");
     };
 }
 
@@ -304,9 +417,9 @@ $(function () {
         view.update()
     });
     $("#show").buttonset();
-    $("#graphs, #difference").click(function () {
+    $("#graph, #difference, #lebesgue, #omega").click(function () {
         if (view.updating) return;
-        model.show_graph($("#show :radio:checked").attr("id") == "graphs");
+        model.show_mode($("#show :radio:checked").attr("id"));
         view.update()
     });
     $("#method").buttonset();

@@ -8,6 +8,7 @@
 <script lang="text/javascript" src="//code.jquery.com/jquery-2.1.1.js"></script>
 <script lang="text/javascript" src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
 <script lang="text/javascript" src="//mipt.ru/upload/crec/jquery.flot.js"></script>
+<script lang="text/javascript" src="//numericjs.com/lib/numeric-1.2.6.js"></script>
 <body>
 
 <div class="row">
@@ -47,7 +48,8 @@
         <input type="radio" id="lagrange" name="radio_method" /><label for="lagrange" class="modelabel">Лагранжа</label>
         <input type="radio" id="newtonleft" name="radio_method" /><label for="newtonleft" class="modelabel">Ньютона (&#8592;)</label>
         <input type="radio" id="newtonright" name="radio_method" /><label for="newtonright" class="modelabel">Ньютона (&#8594;)</label>
-        <input type="radio" id="special" name="radio_method" /><label for="special" class="modelabel">Специальный</label>
+        <input type="radio" id="special" name="radio_method" /><label for="special" class="modelabel"
+             title="Специальные методы вычисления интерполянта имеются для алгебраической интерполяции на сетке из нулей многочлена Чебышева и для тригонометрической интерполяции на равномерной сетке">Специальный</label>
     </div>
     <div class="value"></div>
 </div>
@@ -64,8 +66,10 @@
 <div class="row">
     <div class="label">Показывать</div>
     <div id="show" class="switch">
-        <input type="radio" id="graphs" name="radio_show" /><label for="graphs" class="modelabel">Графики</label>
+        <input type="radio" id="graph" name="radio_show" /><label for="graph" class="modelabel">Графики</label>
         <input type="radio" id="difference" name="radio_show" /><label for="difference" class="modelabel">Модуль разности</label>
+        <input type="radio" id="lebesgue" name="radio_show" /><label for="lebesgue" class="modelabel">Функцию Лебега сетки</label>
+        <input type="radio" id="omega" name="radio_show" /><label for="omega" class="modelabel">&omega;-функцию сетки</label>
     </div>
     <div class="value"></div>
 </div>
