@@ -46,8 +46,8 @@
     <div id="method" class="switch">
         <input type="radio" id="slae" name="radio_method" /><label for="slae" class="modelabel">Решение СЛАУ</label>
         <input type="radio" id="lagrange" name="radio_method" /><label for="lagrange" class="modelabel">Лагранжа</label>
-        <input type="radio" id="newtonleft" name="radio_method" /><label for="newtonleft" class="modelabel">Ньютона (&#8592;)</label>
-        <input type="radio" id="newtonright" name="radio_method" /><label for="newtonright" class="modelabel">Ньютона (&#8594;)</label>
+        <input type="radio" id="newtonleft" name="radio_method" /><label for="newtonleft" class="modelabel">Ньютона (&#8594;)</label>
+        <input type="radio" id="newtonright" name="radio_method" /><label for="newtonright" class="modelabel">Ньютона (&#8592;)</label>
         <input type="radio" id="special" name="radio_method" /><label for="special" class="modelabel"
              title="Специальные методы вычисления интерполянта имеются для алгебраической интерполяции на сетке из нулей многочлена Чебышева и для тригонометрической интерполяции на равномерной сетке">Специальный</label>
     </div>
@@ -62,6 +62,11 @@
     <div class="label">Бит в мантиссе, K</div>
     <div id="slider_K" class="slider"></div>
     <span id="K" class="value">0</span>
+</div>
+<div id="selectdel" class="row">
+    <div class="label">Амплитуда возмущения, &delta;</div>
+    <div id="slider_del" class="slider"></div>
+    <div class="value">10<sup><span id="lgdel">0</span></sup></div>
 </div>
 <div class="row">
     <div class="label">Показывать</div>
