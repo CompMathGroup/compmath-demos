@@ -220,16 +220,16 @@ function Model() {
     };
     this.poly_slae = function() {
         var M = [], b = [];
+        var model = this;
         var i, j;
         for (i = 0; i < this.n; i++) {
             var row = [1];
             for (j = 1; j < this.n; j++)
-                row.push(row[j-1] * this.xk[i]);
+                row.push(m.dropdigits(row[j-1] * this.xk[i]));
             M[i] = row;
-            b[i] = this.yk[i];
+            b[i] = m.dropdigits(this.yk[i]);
         }
         var c = numeric.solve(M, b);
-        var model = this;
 
         return function(x) {
             var sum = model.dropdigits(c[0]);
@@ -370,7 +370,7 @@ function Model() {
                 row[cosn + j] = m.dropdigits(Math.sin((j + 1) * xi));
 
             M[i] = row;
-            b[i] = this.yk[i];
+            b[i] = m.dropdigits(this.yk[i]);
         }
 
         var c = numeric.solve(M, b);
