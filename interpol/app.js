@@ -221,6 +221,7 @@ function Model() {
     this.poly_slae = function() {
         var M = [], b = [];
         var model = this;
+		var m = model;
         var i, j;
         for (i = 0; i < this.n; i++) {
             var row = [1];
