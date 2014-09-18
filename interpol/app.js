@@ -233,13 +233,20 @@ function Model() {
         var c = numeric.solve(M, b);
 
         return function(x) {
-            var sum = model.dropdigits(c[0]);
+            var sum;
             var k;
+            var n = c.length - 1;
             var z = model.dropdigits(x);
-            var q = z;
-            for (k = 1; k < c.length; k++) {
-                sum += model.dropdigits(z * c[k]);
-                z *= q;
+            if (Math.abs(z) <= 1) {
+                sum = model.dropdigits(c[n]);
+                for (k = n - 1; k >= 0; k--)
+                    sum = model.dropdigits(z * sum + c[k]);
+            } else {
+                sum = model.dropdigits(c[0]);
+                z = 1. / z;
+                for (k = 1; k <= n; k++)
+                    sum = model.dropdigits(z * sum + c[k]);
+                sum *= Math.pow(x, n);
             }
             return sum;
         }
