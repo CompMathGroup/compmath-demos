@@ -170,7 +170,7 @@ function Model() {
                 return n / d;
             };
         } else {
-            var l = function(k, x) {
+            l = function(k, x) {
                 var i;
                 var xi = (2 * x - m.a - m.b) / (m.b - m.a) * Math.PI;
                 var xik = (2 * m.xk[k] - m.a - m.b) / (m.b - m.a) * Math.PI;
