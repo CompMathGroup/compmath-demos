@@ -1,0 +1,23 @@
+.slider, .switch, .menu{
+    width: 550px;
+    margin: 10px 20px 0px 20px;
+}
+.label {
+    display: table-cell;
+    margin-right: 20px;
+}
+.value {
+    display: table-cell;
+    margin-left: 20px;
+}
+.row
+{
+    display: table-row;
+}
+.modelabel {
+    font-size: 75%;
+}
+.plot {
+    width: 800px;
+    height: 500px;
+}

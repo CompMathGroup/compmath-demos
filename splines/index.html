@@ -1,0 +1,81 @@
+<html>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+<link rel="stylesheet" href="style.css">
+
+<script lang="text/javascript" src="//code.jquery.com/jquery-2.1.1.js"></script>
+<script lang="text/javascript" src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+<script lang="text/javascript" src="http://www.flotcharts.org/flot/jquery.flot.js"></script>
+<script lang="text/javascript" src="http://numericjs.com/lib/numeric-1.2.6.js"></script>
+<script lang="text/javascript" src="http://jumjum123.github.io/JUMFlot/javascripts/jquery.flot.JUMlib.js"></script>
+<script lang="text/javascript" src="http://jumjum123.github.io/JUMFlot/javascripts/jquery.flot.mouse.js"></script>
+<body>
+
+<div class="row">
+    <div class="label">Отрезок, [a,b]</div>
+    <div id="slider_ab" class="slider"></div>
+    <div class="value">[<span id="a">0</span>,<span id="b">0</span>]</div>
+</div>
+<div class="row">
+    <div class="label">Функция</div>
+    <div class="menu">
+        <select name="func" id="func">
+        </select>
+        <label for="func"></label>
+    </div>
+    <div class="value"><span id="gear" class="gear ui-icon ui-icon-gear"></span></div>
+</div>
+<div class="row">
+    <div class="label">Тип сплайна</div>
+    <div id="method" class="switch">
+        <input type="radio" id="pw1" name="radio_mode" /><label for="pw1" class="modelabel">Кусочно-линейный</label>
+        <input type="radio" id="pw2" name="radio_mode" /><label for="pw2" class="modelabel">Кусочно-квадратичный</label>
+        <input type="radio" id="pw3" name="radio_mode" /><label for="pw3" class="modelabel">Кусочно-кубический</label>
+        <input type="radio" id="sc" name="radio_mode" /><label for="sc" class="modelabel">Гладкий кубический</label>
+        <input type="radio" id="scf" name="radio_mode" /><label for="scf" class="modelabel">Гладкий кубический (свободный)</label>
+        <input type="radio" id="ryab" name="radio_mode" /><label for="ryab" class="modelabel">Локальный кубический (Рябенького)</label>
+        <input type="radio" id="bezier" name="radio_mode" /><label for="bezier" class="modelabel">Локальный кубический (Безье)</label>
+    </div>
+    <div class="value"></div>
+</div>
+<div class="row">
+    <div class="label">Сетка</div>
+    <div id="grid" class="switch">
+        <input type="radio" id="random" name="radio_grid" /><label for="random" class="modelabel">Случайная</label>
+        <input type="radio" id="uniform" name="radio_grid" /><label for="uniform" class="modelabel">Равномерная</label>
+    </div>
+    <div class="value"></div>
+</div>
+<div id="selectn" class="row">
+    <div class="label">Число узлов, n</div>
+    <div id="slider_n" class="slider"></div>
+    <span id="n" class="value">0</span>
+</div>
+<div id="selectdel" class="row">
+    <div class="label">Амплитуда возмущения, &delta;</div>
+    <div id="slider_del" class="slider"></div>
+    <div class="value">10<sup><span id="lgdel">0</span></sup></div>
+</div>
+<div class="row">
+    <div class="label">Показывать</div>
+    <div id="show" class="switch">
+        <input type="radio" id="graph" name="radio_show" /><label for="graph" class="modelabel">Графики</label>
+        <input type="radio" id="der1" name="radio_show" /><label for="der1" class="modelabel">1-я производная</label>
+        <input type="radio" id="der2" name="radio_show" /><label for="der2" class="modelabel">2-я производная</label>
+        <input type="radio" id="der3" name="radio_show" /><label for="der3" class="modelabel">3-я производная</label>
+        <input type="radio" id="diff" name="radio_show" /><label for="diff" class="modelabel">Модуль разности</label>
+        <input type="radio" id="sense" name="radio_show" /><label for="sense" class="modelabel">Чувствительность</label>
+    </div>
+    <div class="value"></div>
+</div>
+<div id="plot" class="plot">
+</div>
+
+<script lang="text/javascript" src="app.js"></script>
+<span id="decodeIt" style="display:none;"></span>
+
+</body>
+
+</html>
