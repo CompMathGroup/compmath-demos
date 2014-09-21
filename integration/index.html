@@ -1,0 +1,109 @@
+<html>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+<link rel="stylesheet" href="style.css">
+
+<script type="text/javascript" src="//code.jquery.com/jquery-2.1.1.js"></script>
+<script type="text/javascript" src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+<script type="text/javascript" src="http://www.flotcharts.org/flot/jquery.flot.js"></script>
+<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/mathjs/1.0.1/math.js"></script>
+
+<body>
+
+<div class="row">
+    <div class="left"><b>Отрезок интегрирования</b><br/>
+        <label>&nbsp;a = </label><span><input id="a" type="text" value="0"></span>
+    </div>
+    <div class="center">&nbsp</div>
+    <div class="right"><br/>
+        <label>&nbsp;b = </label><span><input id="b" type="text" value="1"></span>
+    </div>
+</div>
+<div class="row">
+    <div class="left"><b>Подынтегральная функция</b><br/>
+        <label>&nbsp;f(x) = </label><span><input id="f" type="text" value=""></span>
+    </div>
+    <div class="center">&nbsp</div>
+    <div class="right"><b>Сингулярная часть f(x)</b><br/>
+        <label>&nbsp;&phi;(x) = </label><span><input id="phi" type="text" value=""></span>
+    </div>
+</div>
+<div class="row">
+    <div class="left"><b>Число интервалов на отрезке</b><br/>
+        <label>&nbsp;n = </label><span><input id="n" type="text" value="10"></span>
+    </div>
+    <div class="center">&nbsp</div>
+    <div class="right"><b>Шаг интегрирования</b><br/>
+        <label>&nbsp;h = </label><span><input id="h" type="text" value="0.1"></span>
+    </div>
+</div>
+<div class="row">
+    <label><b>Квадратурная формула</b></label>
+    <div id="method" class="leftradio">
+        <input type="radio" id="lr" name="radio_method" /><label for="lr" class="modelabel">Левой точки</label>
+        <input type="radio" id="rr" name="radio_method" /><label for="rr" class="modelabel">Правой точки</label>
+        <input type="radio" id="mp" name="radio_method" /><label for="mp" class="modelabel">Средней точки</label>
+        <input type="radio" id="tr" name="radio_method" /><label for="tr" class="modelabel">Трапеций</label>
+        <input type="radio" id="simp" name="radio_method" /><label for="simp" class="modelabel">Симпсона</label>
+        <input type="radio" id="gauss2" name="radio_method" /><label for="gauss2" class="modelabel">Гаусса (2 точки)</label>
+        <input type="radio" id="gauss3" name="radio_method" /><label for="gauss3" class="modelabel">Гаусса (3 точки)</label>
+    </div>
+    <div class="center"><img src="http://latex.codecogs.com/gif.latex?\int\limits_{-1}^{1}f(x)dx\approx"></div>
+    <div class="right"><img id="quad" src="http://latex.codecogs.com/gif.latex?(b-a)\frac{f(a) + 4f(\frac{a+b}{2}) + f(b)}{6}"></div>
+</div>
+<div class="row">
+    <div class="left"></div>
+    <div class="center"><img src="http://latex.codecogs.com/gif.latex?\varepsilon="></div>
+    <div class="right"><img id="quaderr" src="http://latex.codecogs.com/gif.latex?(b-a)\frac{M_2 h^2}{6}"></div>
+</div>
+<div class="row">
+<label class="textlabel"><b>Показывать</b></label>
+<div id="show" style="float:left;">
+    <input type="radio" id="graph" name="radio_show" /><label for="graph" class="modelabel">Графики</label>
+    <input type="radio" id="conv" name="radio_show" /><label for="conv" class="modelabel">Сходимость</label>
+</div>
+</div>
+
+<div id="plot" class="plot"></div>
+<table id="table" class="table">
+    <tr>
+        <th>Число интервалов, n</th>
+        <th>Шаг интегрирования, h</th>
+        <th>Приближенное значение интеграла, I<sub>h</sub></th>
+        <th>&Delta;<sub>h</sub> = |I<sub>2h</sub> - I<sub>h</sub>|</th>
+        <th>Фактический порядок, p<sup>*</sup> <br/>= log<sub>2</sub>(&Delta;<sub>2h</sub> / &Delta;<sub>h</sub>)</th>
+        <th>Оценка погрешности, &varepsilon;<sub>h</sub> = &Delta;<sub>h</sub> / (2<sup>p*</sup> - 1)</th>
+    </tr>
+    <tr>
+        <td>10</td>
+        <td>0.05</td>
+        <td>5.1451e-5</td>
+        <td>*</td>
+        <td>*</td>
+        <td>*</td>
+    </tr>
+    <tr>
+        <td>20</td>
+        <td>0.025</td>
+        <td>5.1453e-5</td>
+        <td>3e-8</td>
+        <td>*</td>
+        <td>*</td>
+    </tr>
+    <tr>
+        <td>40</td>
+        <td>0.0125</td>
+        <td>5.1454e-5</td>
+        <td>3e-9</td>
+        <td>3.32</td>
+        <td>3.3e-10</td>
+    </tr>
+</table>
+
+<script lang="text/javascript" src="app.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,74 @@
+.left {
+    display: table-cell;
+    margin-right: 20px;
+    width: 40%;
+}
+.right {
+    display: table-cell;
+    margin-left: 20px;
+    width: 40%;
+    vertical-align: middle;
+}
+.center {
+    display: table-cell;
+    width: 20%;
+    vertical-align: middle;
+    text-align: right;
+    padding-right: 10px;
+    padding-top: 6px;
+}
+.row
+{
+    width: 750px;
+    display: table-row;
+    position: relative;
+}
+.textlabel {
+    float: left;
+    margin-right: 10px;
+    margin-top: 5px;
+}
+.modelabel {
+    font-size: 80%;
+}
+.switch {
+    margin: 5px;
+}
+.plot {
+    width: 750px;
+    height: 500px;
+}
+.table {
+    margin: 5px;
+}
+table.table {
+    border: 1px solid black;
+    width: 750px;
+    table-layout: fixed;
+    border-collapse: collapse;
+    position: relative;
+}
+table.table td, table.table th {
+    border: 1px solid black;
+    border-collapse: collapse;
+    width: 16.667%;
+    text-align: center;
+}
+table.table th {
+    font-family: Serif;
+}
+.left span, .right span {
+    display: block;
+    overflow: hidden;
+    padding-left: 5px;
+}
+.left input, .right input {
+    width: 100%;
+}
+.left label, .right label {
+    float: left;
+}
+.leftradio {
+    width: 300px;
+    vertical-align: top;
+}
