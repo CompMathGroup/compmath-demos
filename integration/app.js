@@ -203,7 +203,7 @@ function View(model, controls) {
         $("#phi3").val(this.model.phi[2]);
         $("#phiint").val(this.model.I1);
 
-        var prefix = "/integration/";
+        var prefix = "";
 
         $("#quad").attr("src", prefix + this.model.quad.tex);
         $("#quaderr").attr("src", prefix + this.model.quad.err);
