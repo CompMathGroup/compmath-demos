@@ -80,7 +80,6 @@ function Model() {
             for (i = 0; i < ord; i++) {
                 sum += c[i] / (i - al + 1) * (Math.pow(this.b, i - al + 1) - Math.pow(this.a, i - al + 1))
             }
-            console.log(sum);
 
             this.phi = [math.parse(v), math.parse(z), al];
             this.I1 = sum;
