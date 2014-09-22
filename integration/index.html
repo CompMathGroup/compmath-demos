@@ -9,34 +9,41 @@
 <script type="text/javascript" src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
 <script type="text/javascript" src="http://www.flotcharts.org/flot/jquery.flot.js"></script>
 <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/mathjs/1.0.1/math.js"></script>
+<script lang="text/javascript" src="http://numericjs.com/lib/numeric-1.2.6.js"></script>
 
 <body>
 
 <div class="row">
     <div class="left"><b>Отрезок интегрирования</b><br/>
-        <label>&nbsp;a = </label><span><input id="a" type="text" value="0"></span>
+        <label>&nbsp;a = </label><span class="inpspan"><input id="a" type="text" value="0"></span>
     </div>
-    <div class="center">&nbsp</div>
+    <div class="center">&nbsp;</div>
     <div class="right"><br/>
-        <label>&nbsp;b = </label><span><input id="b" type="text" value="1"></span>
+        <label>&nbsp;b = </label><span class="inpspan"><input id="b" type="text" value="1"></span>
     </div>
 </div>
 <div class="row">
     <div class="left"><b>Подынтегральная функция</b><br/>
-        <label>&nbsp;f(x) = </label><span><input id="f" type="text" value=""></span>
+        <label>&nbsp;f(x) = </label><span class="inpspan"><input id="f" type="text" value=""></span>
     </div>
-    <div class="center">&nbsp</div>
+    <div class="center">&nbsp;</div>
     <div class="right"><b>Сингулярная часть f(x)</b><br/>
-        <label>&nbsp;&phi;(x) = </label><span><input id="phi" type="text" value=""></span>
+        <label style="margin-top: 2ex">&nbsp;&phi;(x) = </label>
+        <div class="inpspan">
+            <input id="phi" type="text" value="" style="text-align: center" title="многочлен от x">
+            <hr color="#000000" style="margin: 0 0 0 0; height: 0"/>
+            <input id="phi2" type="text" value="" style="text-align: right; width: 49%" title="выражение вида ax + b">
+            <sup><input id="phi3" type="text" value="" style="text-align: left; width: 49%" title="показатель степени, число"></sup>
+        </div>
     </div>
 </div>
 <div class="row">
     <div class="left"><b>Число интервалов на отрезке</b><br/>
-        <label>&nbsp;n = </label><span><input id="n" type="text" value="10"></span>
+        <label>&nbsp;n = </label><span class="inpspan"><input id="n" type="text" value="10"></span>
     </div>
     <div class="center">&nbsp</div>
     <div class="right"><b>Шаг интегрирования</b><br/>
-        <label>&nbsp;h = </label><span><input id="h" type="text" value="0.1"></span>
+        <label>&nbsp;h = </label><span class="inpspan"><input id="h" type="text" value="0.1"></span>
     </div>
 </div>
 <div class="row">
@@ -50,13 +57,13 @@
         <input type="radio" id="gauss2" name="radio_method" /><label for="gauss2" class="modelabel">Гаусса (2 точки)</label>
         <input type="radio" id="gauss3" name="radio_method" /><label for="gauss3" class="modelabel">Гаусса (3 точки)</label>
     </div>
-    <div class="center"><img src="http://latex.codecogs.com/gif.latex?\int\limits_{-1}^{1}f(x)dx\approx"></div>
-    <div class="right"><img id="quad" src="http://latex.codecogs.com/gif.latex?(b-a)\frac{f(a) + 4f(\frac{a+b}{2}) + f(b)}{6}"></div>
+    <div class="center"><img src="int.gif"></div>
+    <div class="right"><img id="quad" src=""></div>
 </div>
 <div class="row">
     <div class="left"></div>
-    <div class="center"><img src="http://latex.codecogs.com/gif.latex?\varepsilon="></div>
-    <div class="right"><img id="quaderr" src="http://latex.codecogs.com/gif.latex?(b-a)\frac{M_2 h^2}{6}"></div>
+    <div class="center"><img src="eps.gif"></div>
+    <div class="right"><img id="quaderr" src=""></div>
 </div>
 <div class="row">
 <label class="textlabel"><b>Показывать</b></label>
@@ -69,13 +76,14 @@
 <div id="plot" class="plot"></div>
 <table id="table" class="table">
     <tr>
-        <th>Число интервалов, n</th>
-        <th>Шаг интегрирования, h</th>
-        <th>Приближенное значение интеграла, I<sub>h</sub></th>
-        <th>&Delta;<sub>h</sub> = |I<sub>2h</sub> - I<sub>h</sub>|</th>
-        <th>Фактический порядок, p<sup>*</sup> <br/>= log<sub>2</sub>(&Delta;<sub>2h</sub> / &Delta;<sub>h</sub>)</th>
-        <th>Оценка погрешности, &varepsilon;<sub>h</sub> = &Delta;<sub>h</sub> / (2<sup>p*</sup> - 1)</th>
+        <th style="width:10%">Число интер-валов, n</th>
+        <th style="width:15%">Шаг интегри-рования, h</th>
+        <th style="width:20%">Приближенное значение интеграла, I<sub>h</sub></th>
+        <th style="width:15%">&Delta;<sub>h</sub> = |I<sub>2h</sub> - I<sub>h</sub>|</th>
+        <th style="width:15%">Фактический порядок, p<sup>*</sup> <br/>= log<sub>2</sub>(&Delta;<sub>2h</sub> / &Delta;<sub>h</sub>)</th>
+        <th style="width:15%">Оценка погрешности, &varepsilon;<sub>h</sub> = &Delta;<sub>h</sub> / (2<sup>p*</sup> - 1)</th>
     </tr>
+    <tbody id="tabledata">
     <tr>
         <td>10</td>
         <td>0.05</td>
@@ -100,6 +108,7 @@
         <td>3.32</td>
         <td>3.3e-10</td>
     </tr>
+    </tbody>
 </table>
 
 <script lang="text/javascript" src="app.js"></script>

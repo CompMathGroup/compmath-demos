@@ -5,16 +5,13 @@ function Model() {
     var M = 500;
     var N = 300;
 
+    this.maxn = 10000;
+
     this.xk = new Array(N);
     this.yk = new Array(N);
 
     this.x = new Array(M + 1);
     this.func = new Array(M + 1);
-    this.inter = new Array(M + 1);
-    this.Lfunc = new Array(M + 1);
-    this.wfunc = new Array(M + 1);
-
-    var i;
 
     this.set_ab = function (a, b) {
         if (a != b) {
@@ -42,18 +39,51 @@ function Model() {
         try {
             var f = math.parse("f(x) = " + v);
             var fc = f.compile(math).eval();
-            var fv = fc(.5 * (this.a + this.b));
+            fc(.5 * (this.a + this.b));
             this.f = f;
         } catch (e) {
             console.log(e);
         }
     };
-    this.set_phi = function(v) {
+    this.set_phi = function(v, z, alpha) {
         try {
-            var f = math.parse("g(x) = " + v);
+            var f = math.parse("g(x) = " + "(" + v + ") / pow(" + z + ", " + alpha + ")");
             var fc = f.compile(math).eval();
-            var fv = fc(.5 * (this.a + this.b));
-            this.phi = f;
+            fc(.5 * (this.a + this.b));
+
+            var z0 = math.compile(z).eval({x: 0});
+            var z1 = math.compile(z).eval({x: 1});
+
+            var zb = z0;
+            var za = z1 - z0;
+            if (za == 0)
+                throw new SyntaxError("Not in ax+b form");
+
+            var P = math.compile("P(x) = " + v).eval();
+            var M = [];
+            var b = [];
+
+            var i, j, ord = 10;
+            for (i = 0; i < ord; i++) {
+                var row = [1];
+                for (j = 1; j < ord; j++)
+                    row.push(row[j - 1] * i);
+                M.push(row.slice());
+                b.push(P(za * i + zb));
+            }
+            var c = numeric.solve(M, b);
+            var al = math.eval(alpha);
+            if (!$.isNumeric(al))
+                throw new SyntaxError("Power is not a number");
+
+            var sum = 0;
+            for (i = 0; i < ord; i++) {
+                sum += c[i] / (i - al + 1) * (Math.pow(this.b, i - al + 1) - Math.pow(this.a, i - al + 1))
+            }
+            console.log(sum);
+
+            this.phi = [math.parse(v), math.parse(z), al];
+            this.I1 = sum;
         } catch (e) {
             console.log(e);
         }
@@ -62,15 +92,31 @@ function Model() {
         if (v == "graph" || v == "conv")
             this.show = v;
     };
+    this.compute = function (a, b, n, g, I0, quad) {
+        var i, j;
+        var h = (b - a) / n;
+        var sum = 0;
+        var x = quad.x;
+        var w = quad.w;
+        var ord = w.length;
+        var x0 = a;
+        for (i = 0; i < n; i++) {
+            for (j = 0; j < ord; j++)
+                sum += g(x0 + x[j] * h) * w[j];
+            x0 += h;
+        }
+        return {n: n, h: h, I: sum * h + I0};
+    };
     this.recompute = function () {
         var i, k;
         var qx = this.quad.x;
-        var w = this.quad.w;
+
         var ord = qx.length;
         var x;
 
         var f = this.f.compile(math).eval();
-        var phi = this.phi.compile(math).eval();
+        var phiexpr = math.parse("g(x) = " + "(" + this.phi[0].toString() + ") / pow(" + this.phi[1].toString() + ", " + this.phi[2] + ")");
+        var phi = phiexpr.compile(math).eval();
 
         var a = this.a;
         var b = this.b;
@@ -78,11 +124,14 @@ function Model() {
         var g = function(x) {
             var v = f(x) - phi(x);
             if (v !== v) {
+                // TODO: Hack, loss of accuracy
                 var eps = 1e-6 * (b - a);
-                if (i == 0)
+                if (x == a)
                     v = f(x + eps) - phi(x + eps);
                 else
                     v = f(x - eps) - phi(x - eps);
+                if (Math.abs(v) < 1e-4)
+                    v = 0;
             }
             return v;
         };
@@ -101,28 +150,40 @@ function Model() {
             this.x[i] = x;
             this.func[i] = g(x);
         }
+
+        var n;
+        this.conv = [];
+        for (n = this.n; n < this.maxn; n *= 2) {
+            this.conv.push(this.compute(this.a, this.b, n, g, this.I1, this.quad));
+        }
+        for (i = 1; i < this.conv.length; i++)
+            this.conv[i].D = Math.abs(this.conv[i].I - this.conv[i-1].I);
+        for (i = 2; i < this.conv.length; i++) {
+            var D2h = this.conv[i - 1].D;
+            var Dh = this.conv[i].D;
+            this.conv[i].p = Math.log(D2h / Dh) * Math.LOG2E;
+            this.conv[i].eps = Dh * Dh / (D2h - Dh);
+        }
     };
     this.set_ab(0, 1);
     this.set_n(10);
 
     this.show_mode("graph");
-    this.set_f("cos(x) / sqrt(x)");
-    this.set_phi("1 / sqrt(x)");
+    this.set_f("sin(5 * x)");
+    this.set_phi("0", "x", "0");
 
     this.quads = {
-        "lr" : { w: [1], x: [0], tex: "2 f(-1)", err: "(b - a)\\frac{M_1 h}{2}"},
-        "rr" : { w: [1], x: [1], tex: "2 f(1)", err: "(b - a)\\frac{M_1 h}{2}"},
-        "mp" : { w: [1], x: [.5], tex: "2 f(0)", err: "(b - a)\\frac{M_2 h^2}{24}"},
-        "tr" : { w: [.5,.5], x: [0, 1], tex: "f(-1) + f(1)", err: "(b - a)\\frac{M_2 h^2}{12}"},
-        "simp" : { w: [1./6,2./3,1./6], x: [0,.5,1], tex: "\\frac{f(-1) + 4f(0)+ f(1)}{3}", err: "(b - a)\\frac{M_4 h^4}{2880}"},
+        "lr" : { w: [1], x: [0], tex: "lr.gif", err: "eps_lr.gif"},
+        "rr" : { w: [1], x: [1], tex: "rr.gif", err: "eps_rr.gif"},
+        "mp" : { w: [1], x: [.5], tex: "mp.gif", err: "eps_mp.gif"},
+        "tr" : { w: [.5,.5], x: [0, 1], tex: "tr.gif", err: "eps_tr.gif"},
+        "simp" : { w: [1./6,2./3,1./6], x: [0,.5,1], tex: "simp.gif", err: "eps_simp.gif"},
         "gauss2" : { w: [.5,.5], x: [(1-0.5773502691896257) / 2, (0.5773502691896257 + 1) / 2],
-            tex: "f\\left(-\\frac{1}{\\sqrt{3}}\\right) + f\\left(\\frac{1}{\\sqrt{3}}\\right)",
-            err: "(b - a)\\frac{M_4 h^4}{4320}"},
+            tex: "gauss2.gif", err: "eps_gauss2.gif"},
         "gauss3" : { w: [5./18,4./9,5./18], x: [(1-0.7745966692414834)/2,.5,(1+0.7745966692414834)/2],
-            tex: "\\frac{5}{9}f\\left(-\\frac{\\sqrt{15}}{5}\\right) + \\frac{8}{9}f(0)+ \\frac{5}{9}f\\left(\\frac{\\sqrt{15}}{5}\\right)",
-            err: "(b - a)\\frac{M_6 h^6}{2016000}"}
+            tex: "gauss3.gif", err: "eps_gauss3.gif"}
     };
-    this.set_method("gauss2");
+    this.set_method("lr");
 }
 
 function View(model, controls) {
@@ -137,10 +198,15 @@ function View(model, controls) {
         $("#a").val(this.model.a);
         $("#b").val(this.model.b);
         $("#f").val(this.model.f.expr.toString());
-        $("#phi").val(this.model.phi.expr.toString());
+        $("#phi").val(this.model.phi[0].toString());
+        $("#phi2").val(this.model.phi[1].toString());
+        $("#phi3").val(this.model.phi[2]);
+        $("#phiint").val(this.model.I1);
 
-        $("#quad").attr("src", "http://www.codecogs.com/gif.latex?" + encodeURI(this.model.quad.tex));
-        $("#quaderr").attr("src", "http://www.codecogs.com/gif.latex?" + encodeURI(this.model.quad.err));
+        var prefix = "/integration/";
+
+        $("#quad").attr("src", prefix + this.model.quad.tex);
+        $("#quaderr").attr("src", prefix + this.model.quad.err);
 
         this.controls.update();
         this.model.recompute();
@@ -148,18 +214,16 @@ function View(model, controls) {
         this.updating = false;
     };
     this.replot = function () {
-        if (this.model.show == "graph") {
-            $("#plot").show();
+        var m = this.model;
+        if (m.show == "graph") {
             $("#table").hide();
 
             var nodes = [];
             var graphdat = [];
             var intdat = [];
 
-            var m = this.model;
-
             var ord = m.quad.x.length;
-            var i, imax = ord * m.n;
+            var i, j, imax = ord * m.n;
             for (i = 0; i < imax; i++)
                 nodes.push([m.xk[i], m.yk[i]]);
             for (i = 0; i < m.x.length; i++)
@@ -204,12 +268,12 @@ function View(model, controls) {
             maxv += 0.1 * diffv;
             minv -= 0.1 * diffv;
 
-            if (diffv < 1e-2) {
+            if (diffv < 1e-12) {
                 minv = -1;
                 maxv = 1;
             }
 
-            $("#plot").plot([
+            $("#plot").show().plot([
                 { data: graphdat, label: "Подынтегральная функция", lines: {show: true} },
                 { data: intdat, label: "Интерполирующая функция", lines: {show: true, fill: true } },
                 { data: nodes, label: "Узлы интегрирования", points: {show: true} }
@@ -219,7 +283,28 @@ function View(model, controls) {
             } );
         } else {
             $("#plot").hide();
-            $("#table").show();
+            var table = $("#table");
+            var tabledata = $("#tabledata");
+            tabledata.html("");
+            function prettyexp(v) {
+                var res = v.split("e");
+                if (res.length != 2)
+                    return v;
+                var mant = res[0];
+                var exp = +res[1];
+                return mant + "&middot;10<sup>" + exp + "</sup>";
+            }
+            $.each(m.conv, function(i, v) {
+                tabledata.append("<tr>"
+                    + "<td>" + v.n + "</td>"
+                    + "<td>" + prettyexp(v.h.toExponential(5)) + "</td>"
+                    + "<td>" + prettyexp(v.I.toExponential(10)) + "</td>"
+                    + "<td>" + (v.D === undefined ? "*" : prettyexp(v.D.toExponential(5))) + "</td>"
+                    + "<td>" + (v.p === undefined ? "*" : v.p.toFixed(2)) + "</td>"
+                    + "<td>" + (v.eps === undefined ? "*" : prettyexp(v.eps.toExponential(5))) + "</td>"
+                    + "</tr>");
+            });
+            table.show();
         }
     }
 }
@@ -272,9 +357,9 @@ $(function () {
         model.set_f($("#f").val());
         view.update();
     });
-    $("#phi").change(function() {
+    $("#phi, #phi2, #phi3").change(function() {
         if (view.updating) return;
-        model.set_phi($("#phi").val());
+        model.set_phi($("#phi").val(), $("#phi2").val(), $("#phi3").val());
         view.update();
     });
 
