@@ -5,12 +5,13 @@
 <link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
 <link rel="stylesheet" href="style.css">
 
-<script lang="text/javascript" src="//code.jquery.com/jquery-2.1.1.js"></script>
-<script lang="text/javascript" src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
-<script lang="text/javascript" src="http://www.flotcharts.org/flot/jquery.flot.js"></script>
-<script lang="text/javascript" src="http://numericjs.com/lib/numeric-1.2.6.js"></script>
-<script lang="text/javascript" src="http://jumjum123.github.io/JUMFlot/javascripts/jquery.flot.JUMlib.js"></script>
-<script lang="text/javascript" src="http://jumjum123.github.io/JUMFlot/javascripts/jquery.flot.mouse.js"></script>
+<script type="text/javascript" src="//code.jquery.com/jquery-2.1.1.js"></script>
+<script type="text/javascript" src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+<script type="text/javascript" src="http://www.flotcharts.org/flot/jquery.flot.js"></script>
+<script type="text/javascript" src="http://numericjs.com/lib/numeric-1.2.6.js"></script>
+<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/mathjs/1.0.1/math.js"></script>
+<script type="text/javascript" src="http://jumjum123.github.io/JUMFlot/javascripts/jquery.flot.JUMlib.js"></script>
+<script type="text/javascript" src="http://jumjum123.github.io/JUMFlot/javascripts/jquery.flot.mouse.js"></script>
 <body>
 
 <div class="row">
@@ -20,12 +21,8 @@
 </div>
 <div class="row">
     <div class="label">Функция</div>
-    <div class="menu">
-        <select name="func" id="func">
-        </select>
-        <label for="func"></label>
-    </div>
-    <div class="value"><span id="gear" class="gear ui-icon ui-icon-gear"></span></div>
+	<input class="menu" id="f" type="text" value="">
+    <div class="value"></div>
 </div>
 <div class="row">
     <div class="label">Тип сплайна</div>
