@@ -93,9 +93,15 @@ function Model() {
         if ($.inArray(v, this.avaliable_methods[this.mode][this.grid]) >= 0)
             this.method = v;
     };
-    this.set_funcid = function (id) {
-        if (id >= 0 && id < this.funcs.length)
-            this.funcid = id;
+    this.set_func = function (str) {
+        try {
+            var f = math.parse("f(x) = " + str);
+            var fc = f.compile(math).eval();
+            fc((this.a + this.b) / 2);
+            this.f = f;
+        } catch (e) {
+            console.log("Could not parse function:", e);
+        }
     };
     this.show_mode = function (v) {
         if (v == "graph" || v == "difference" || v == "lebesgue")
@@ -502,7 +508,7 @@ function Model() {
         var M = this.x.length - 1;
         var h = (this.b0 - this.a0) / M;
 
-        var f = this.funcs[this.funcid].f;
+        var f = this.f.compile(math).eval();
 
         this.make_grid();
 
@@ -539,42 +545,14 @@ function Model() {
             this.wfunc[i] = w(x);
         }
     };
-    this.funcs = [
-        { text: "sin x", f: function (x) {
-            return Math.sin(x);
-        } },
-        { text: "sin &pi;x", f: function (x) {
-            return Math.sin(Math.PI * x);
-        } },
-        { text: "sin &pi;x&sup3;", f: function (x) {
-            return Math.sin(Math.PI * x * x * x);
-        } },
-        { text: "sgn x", f: function (x) {
-            return x > 0 ? 1 : (x < 0 ? -1 : 0);
-        } },
-        { text: "|x|", f: function (x) {
-            return Math.abs(x);
-        } },
-        { text: "|x|x", f: function (x) {
-            return Math.abs(x) * x;
-        } },
-        { text: "|x|x&sup2;", f: function (x) {
-            return Math.abs(x) * x * x;
-        } },
-        { text: "exp(-25x&sup2;)", f: function (x) {
-            return Math.exp(-25 * x * x);
-        } },
-        { text: "1/(1+25x&sup2;)", f: function (x) {
-            return 1 / (1 + 25 * x * x);
-        } }
-    ];
+
     this.set_ab(-1, 1);
     this.set_K(23);
     this.set_n(10);
     this.set_delta(1e-15);
 
     this.show_mode("graph");
-    this.set_funcid(1);
+    this.set_func("sin(pi * x)");
 
     this.mode = "poly";
     this.grid = "random";
@@ -659,7 +637,7 @@ function View(model, controls) {
 
         if (this.model.show == "graph")
             $.plot($("#plot"), [
-                    { label: m.funcs[m.funcid].text, data: fdata },
+                    { label: m.f.expr.toString(), data: fdata },
                     { label: "Интерполянт", data: idata },
                     { label: "Узлы интерполяции", data: nodes, points: { show: true }}
                 ],
@@ -741,7 +719,7 @@ function Controller(model) {
         $("#slider_n").slider("option", "value", this.model.n);
         $("#slider_K").slider("option", "value", this.model.K);
         $("#slider_del").slider("option", "value", Math.round(2 * Math.log(this.model.del) / Math.LN10));
-        $("#func").val(this.model.funcid);
+        $("#f").val(this.model.f.expr.toString());
 
         $("#" + this.model.mode).trigger("click");
         $("#" + this.model.grid).trigger("click");
@@ -835,33 +813,10 @@ $(function () {
         view.update()
     });
 
-    $("#gear").click(function () {
-        <!-- Configure functions list -->
-        var oldpos = $("#gear").position();
-        var newtop = $("#plot").position().top - $("#gear").height() / 2;
-
-        $("#gear")
-            .css("position", "absolute")
-            .css(oldpos)
-            .animate({top: newtop}, {
-                duration: 800,
-                easing: 'easeOutBounce',
-                complete: function () {
-                    $("#gear").hide();
-                }
-            });
-    });
     var decoder = $("#decodeIt");
-    $.each(model.funcs, function (i) {
-        decoder.html(this.text);
-        $("#func")
-            .append($("<option></option>")
-                .val(i)
-                .text(decoder.text()));
-    });
-    $("#func").change(function (e, v) {
+    $("#f").change(function (e, v) {
         if (view.updating) return;
-        model.set_funcid(+$("#func :selected").attr("value"));
+        model.set_func($("#f").val());
         view.update()
     })
 
