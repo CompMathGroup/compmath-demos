@@ -61,9 +61,15 @@ function Model() {
         if ($.inArray(v, methods) != -1)
             this.method = v;
     };
-    this.set_funcid = function (id) {
-        if (id >= 0 && id < this.funcs.length)
-            this.funcid = id;
+    this.set_func = function (str) {
+		try {
+            var f = math.parse("f(x) = " + str);
+            var fc = f.compile(math).eval();
+            fc((this.a + this.b) / 2);
+            this.f = f;
+        } catch (e) {
+            console.log("Could not parse function:", e);
+        }
     };
     this.show_mode = function (v) {
         var graphs = ["graph", "diff", "sense", "der1", "der2", "der3"];
@@ -273,7 +279,7 @@ function Model() {
         var M = this.x.length - 1;
         var h = (this.b0 - this.a0) / M;
 
-        var f = this.funcs[this.funcid].f;
+        var f = this.f.compile(math).eval();
         var i, x;
 
         if (!this.minor_update) {
@@ -315,41 +321,12 @@ function Model() {
             this.d3spline[i] = P(x, 3);
         }
     };
-    this.funcs = [
-        { text: "sin x", f: function (x) {
-            return Math.sin(x);
-        } },
-        { text: "sin &pi;x", f: function (x) {
-            return Math.sin(Math.PI * x);
-        } },
-        { text: "sin &pi;x&sup3;", f: function (x) {
-            return Math.sin(Math.PI * x * x * x);
-        } },
-        { text: "sgn x", f: function (x) {
-            return x > 0 ? 1 : (x < 0 ? -1 : 0);
-        } },
-        { text: "|x|", f: function (x) {
-            return Math.abs(x);
-        } },
-        { text: "|x|x", f: function (x) {
-            return Math.abs(x) * x;
-        } },
-        { text: "|x|x&sup2;", f: function (x) {
-            return Math.abs(x) * x * x;
-        } },
-        { text: "exp(-25x&sup2;)", f: function (x) {
-            return Math.exp(-25 * x * x);
-        } },
-        { text: "1/(1+25x&sup2;)", f: function (x) {
-            return 1 / (1 + 25 * x * x);
-        } }
-    ];
     this.set_ab(-1, 1);
     this.set_n(10);
     this.set_delta(1e-5);
 
     this.show_mode("graph");
-    this.set_funcid(1);
+    this.set_func("sin(pi * x)");
 
     this.set_method("pw1");
     this.set_grid("random");
@@ -433,7 +410,7 @@ function View(model, controls) {
 
         if (this.model.show == "graph")
             $.plot($("#plot"), [
-                    { label: m.funcs[m.funcid].text, data: fdata },
+                    { label: m.f.expr.toString(), data: fdata },
                     { label: "Сплайн", data: sdata },
                     { label: "Узлы интерполяции", data: nodes, points: { show: true }}
                 ],
@@ -463,7 +440,7 @@ function View(model, controls) {
             var dfdata = (dord == 1) ? f1data : ((dord == 2) ? f2data : f3data);
             var dsdata = (dord == 1) ? s1data : ((dord == 2) ? s2data : s3data);
             $.plot($("#plot"), [
-                    { label: "" + dord + "-я производная " + m.funcs[m.funcid].text, data: dfdata },
+                    { label: "" + dord + "-я производная " + m.f.expr.toString(), data: dfdata },
                     { label: "" + dord + "-я производная сплайна", data: dsdata }
                 ],
                 {
@@ -501,7 +478,7 @@ function Controller(model) {
         $("#slider_ab").slider("option", "values", [this.model.a, this.model.b]);
         $("#slider_n").slider("option", "value", this.model.n);
         $("#slider_del").slider("option", "value", Math.round(4 * Math.log(this.model.del) / Math.LN10));
-        $("#func").val(this.model.funcid);
+        $("#f").val(this.model.f.expr.toString());
 
         $("#" + this.model.grid).trigger("click");
         $("#" + this.model.method).trigger("click");
@@ -576,34 +553,10 @@ $(function () {
         model.set_method($("#method :radio:checked").attr("id"));
         view.update()
     });
-
-    $("#gear").click(function () {
-        <!-- Configure functions list -->
-        var oldpos = $("#gear").position();
-        var newtop = $("#plot").position().top - $("#gear").height() / 2;
-
-        $("#gear")
-            .css("position", "absolute")
-            .css(oldpos)
-            .animate({top: newtop}, {
-                duration: 800,
-                easing: 'easeOutBounce',
-                complete: function () {
-                    $("#gear").hide();
-                }
-            });
-    });
     var decoder = $("#decodeIt");
-    $.each(model.funcs, function (i) {
-        decoder.html(this.text);
-        $("#func")
-            .append($("<option></option>")
-                .val(i)
-                .text(decoder.text()));
-    });
-    $("#func").change(function (e, v) {
+    $("#f").change(function (e, v) {
         if (view.updating) return;
-        model.set_funcid(+$("#func :selected").attr("value"));
+        model.set_func($("#f").val());
         view.update()
     });
     $("#plot").bind("datadrop", function (event, pos, item) {
