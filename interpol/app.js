@@ -7,9 +7,11 @@ function Model() {
     this.randy = new Array(N);
     this.xk = new Array(N);
     this.yk = new Array(N);
+    this.zk = new Array(N);
     this.x = new Array(M + 1);
     this.func = new Array(M + 1);
     this.inter = new Array(M + 1);
+    this.alter = new Array(M + 1);
     this.Lfunc = new Array(M + 1);
     this.wfunc = new Array(M + 1);
 
@@ -69,6 +71,9 @@ function Model() {
             random : ["lagrange", "slae"]
         }
     };
+    this.set_altered_val = function(i, v) {
+        this.zk[i] = v;
+    };
     this.set_delta = function(v) {
         if (v >= 1e-15 && v <= 1)
             this.del = v;
@@ -104,7 +109,7 @@ function Model() {
         }
     };
     this.show_mode = function (v) {
-        if (v == "graph" || v == "difference" || v == "lebesgue")
+        if (v == "graph" || v == "difference" || v == "lebesgue" || v == "sense")
             this.show = v;
         if (v == "omega" && this.mode != "trig")
             this.show = "omega";
@@ -224,17 +229,17 @@ function Model() {
             return n;
         };
     };
-    this.poly_slae = function() {
+    this.poly_slae = function(xv, yv) {
         var M = [], b = [];
         var model = this;
-		var m = model;
+        var m = model;
         var i, j;
         for (i = 0; i < this.n; i++) {
             var row = [1];
             for (j = 1; j < this.n; j++)
-                row.push(m.dropdigits(row[j-1] * this.xk[i]));
+                row.push(m.dropdigits(row[j-1] * xv[i]));
             M[i] = row;
-            b[i] = m.dropdigits(this.yk[i]);
+            b[i] = m.dropdigits(yv[i]);
         }
         var c = numeric.solve(M, b);
 
@@ -257,18 +262,18 @@ function Model() {
             return sum;
         }
     };
-    this.poly_lagrange = function() {
+    this.poly_lagrange = function(xv, yv) {
         var model = this;
         var l = function(k, x) {
             var n = 1., d = 1.;
             var i;
             for (i = 0; i < k; i++) {
-                n *= model.dropdigits(x - model.xk[i]);
-                d *= model.dropdigits(model.xk[k] - model.xk[i]);
+                n *= model.dropdigits(x - xv[i]);
+                d *= model.dropdigits(xv[k] - xv[i]);
             }
             for (i = k + 1; i < model.n; i++) {
-                n *= model.dropdigits(x - model.xk[i]);
-                d *= model.dropdigits(model.xk[k] - model.xk[i]);
+                n *= model.dropdigits(x - xv[i]);
+                d *= model.dropdigits(xv[k] - xv[i]);
             }
             return n / d;
         };
@@ -276,17 +281,17 @@ function Model() {
             var sum = 0;
             var i;
             for (i = 0; i < model.n; i++) {
-                sum += model.dropdigits(model.yk[i]) * l(i, x);
+                sum += model.dropdigits(yv[i]) * l(i, x);
             }
             return sum;
         };
     };
-    this.newton = function(reverse) {
+    this.newton = function(xv, yv, reverse) {
         var m = this;
 
         var n = m.n;
-        var xx = m.xk.slice(0, n);
-        var yy = m.yk.slice(0, n);
+        var xx = xv.slice(0, n);
+        var yy = yv.slice(0, n);
         if (reverse) {
             xx.reverse();
             yy.reverse();
@@ -316,7 +321,7 @@ function Model() {
             return sum;
         };
     };
-    this.cheb = function() {
+    this.cheb = function(xv, yv) {
         var m = this;
 
         var n = m.n;
@@ -348,8 +353,8 @@ function Model() {
             var sum = 0;
 
             for (j = 0; j < n; j++) {
-                var xi = (2 * m.xk[j] - m.a - m.b) / (m.b - m.a);
-                sum += m.dropdigits(T(i, xi) * m.yk[j]);
+                var xi = (2 * xv[j] - m.a - m.b) / (m.b - m.a);
+                sum += m.dropdigits(T(i, xi) * yv[j]);
             }
             a[i] = 2 * sum / n;
         }
@@ -363,7 +368,7 @@ function Model() {
             return sum;
         };
     };
-    this.trig_slae = function() {
+    this.trig_slae = function(xv, yv) {
         var M = [], b = [];
         var i, j;
         var m = this;
@@ -377,14 +382,14 @@ function Model() {
         }
         for (i = 0; i < m.n; i++) {
             var row = [];
-            var xi = (2 * m.xk[i] - m.a - m.b) / (m.b - m.a) * Math.PI;
+            var xi = (2 * xv[i] - m.a - m.b) / (m.b - m.a) * Math.PI;
             for (j = 0; j < cosn; j++)
                 row[j] = m.dropdigits(Math.cos(j * xi));
             for (j = 0; j < sinn; j++)
                 row[cosn + j] = m.dropdigits(Math.sin((j + 1) * xi));
 
             M[i] = row;
-            b[i] = m.dropdigits(this.yk[i]);
+            b[i] = m.dropdigits(yv[i]);
         }
 
         var c = numeric.solve(M, b);
@@ -401,7 +406,7 @@ function Model() {
             return sum;
         }
     };
-    this.trig_uniform = function() {
+    this.trig_uniform = function(xv, yv) {
         var i, j;
         var m = this;
         var cosn, sinn;
@@ -418,16 +423,16 @@ function Model() {
         for (i = 0; i < cosn; i++) {
             sum = 0;
             for (j = 0; j < m.n; j++) {
-                xi = (2 * m.xk[j] - m.a - m.b) / (m.b - m.a) * Math.PI;
-                sum += m.dropdigits(m.yk[j] * Math.cos(i * xi));
+                xi = (2 * xv[j] - m.a - m.b) / (m.b - m.a) * Math.PI;
+                sum += m.dropdigits(yv[j] * Math.cos(i * xi));
             }
             c[i] = sum / ((i == 0) ? m.n : ((m.n) / 2));
         }
         for (i = 0; i < sinn; i++) {
             sum = 0;
             for (j = 0; j < m.n; j++) {
-                xi = (2 * m.xk[j] - m.a - m.b) / (m.b - m.a) * Math.PI;
-                sum += m.dropdigits(m.yk[j] * Math.sin((i+1) * xi));
+                xi = (2 * xv[j] - m.a - m.b) / (m.b - m.a) * Math.PI;
+                sum += m.dropdigits(yv[j] * Math.sin((i+1) * xi));
             }
             c[i + cosn] = sum / ((i == sinn - 1 && !(m.n & 1)) ? m.n : (m.n) / 2);
         }
@@ -444,20 +449,20 @@ function Model() {
             return sum;
         }
     };
-    this.trig_lagrange = function() {
+    this.trig_lagrange = function(xv, yv) {
         var m = this;
 
         var l = function(k, x) {
             var i;
             var xi = (2 * x - m.a - m.b) / (m.b - m.a) * Math.PI;
-            var xik = (2 * m.xk[k] - m.a - m.b) / (m.b - m.a) * Math.PI;
+            var xik = (2 * xv[k] - m.a - m.b) / (m.b - m.a) * Math.PI;
 
             var n = 1., d = 1.;
             var xii;
             for (i = 0; i < m.n; i++) {
                 if (i == k)
                     continue;
-                xii = (2 * m.xk[i] - m.a - m.b) / (m.b - m.a) * Math.PI;
+                xii = (2 * xv[i] - m.a - m.b) / (m.b - m.a) * Math.PI;
                 n *= m.dropdigits(Math.sin((xi - xii)/2));
                 d *= m.dropdigits(Math.sin((xik - xii)/2));
             }
@@ -465,7 +470,7 @@ function Model() {
                 var alpha = 0;
                 for (i = 0; i < m.n; i++)
                     if (i != k)
-                        alpha += (2 * m.xk[i] - m.a - m.b) / (m.b - m.a) * Math.PI;
+                        alpha += (2 * xv[i] - m.a - m.b) / (m.b - m.a) * Math.PI;
 
                 n *= Math.cos((xi + alpha) / 2);
                 d *= Math.cos((xik + alpha) / 2);
@@ -476,31 +481,31 @@ function Model() {
             var sum = 0;
             var i;
             for (i = 0; i < m.n; i++) {
-                sum += m.dropdigits(m.yk[i]) * l(i, x);
+                sum += m.dropdigits(yv[i]) * l(i, x);
             }
             return sum;
         };
     };
-    this.compute_interpolant = function () {
+    this.compute_interpolant = function (xv, yv) {
         if (this.mode == "poly") {
             if (this.method == "slae")
-                return this.poly_slae();
+                return this.poly_slae(xv, yv);
             if (this.method == "lagrange")
-                return this.poly_lagrange();
+                return this.poly_lagrange(xv, yv);
             if (this.method == "newtonleft")
-                return this.newton(false);
+                return this.newton(xv, yv, false);
             if (this.method == "newtonright")
-                return this.newton(true);
+                return this.newton(xv, yv, true);
             if (this.method == "special" && this.grid == "chebyshev")
-                return this.cheb();
+                return this.cheb(xv, yv);
         }
         if (this.mode == "trig") {
             if (this.method == "slae")
-                return this.trig_slae();
+                return this.trig_slae(xv, yv);
             if (this.method == "lagrange")
-                return this.trig_lagrange();
+                return this.trig_lagrange(xv, yv);
             if (this.method == "special" && this.grid == "uniform")
-                return this.trig_uniform();
+                return this.trig_uniform(xv, yv);
         }
         return undefined;
     };
@@ -509,24 +514,28 @@ function Model() {
         var h = (this.b0 - this.a0) / M;
 
         var f = this.f.compile(math).eval();
-
-        this.make_grid();
-
         var i, x;
 
-        function tform(v) {
-            var v3 = v * v * v;
-            var v4 = v3 * v;
-            var v5 = v3 * v * v;
-            return -1 + 20*v3 - 30 * v4 + 12*v5;
-        }
+        if (!this.minor_update) {
+            this.make_grid();
 
-        for (i = 0; i < this.n; i++) {
-            x = this.xk[i];
-            this.yk[i] = f(x) + this.del * tform(this.randy[i]);
-        }
+            function tform(v) {
+                var v3 = v * v * v;
+                var v4 = v3 * v;
+                var v5 = v3 * v * v;
+                return -1 + 20*v3 - 30 * v4 + 12*v5;
+            }
 
-        var P = this.compute_interpolant();
+            for (i = 0; i < this.n; i++) {
+                x = this.xk[i];
+                this.yk[i] = f(x) + this.del * tform(this.randy[i]);
+                this.zk[i] = this.yk[i];
+            }
+        }
+        this.minor_update = false;
+
+        var P = this.compute_interpolant(this.xk, this.yk);
+        var Q = this.compute_interpolant(this.xk, this.zk);
         var L = this.lebesgue();
         var w = this.omega();
 
@@ -541,6 +550,7 @@ function Model() {
             }
             this.func[i] = f(x);
             this.inter[i] = P(x);
+            this.alter[i] = Q(x);
             this.Lfunc[i] = L(x);
             this.wfunc[i] = w(x);
         }
@@ -564,6 +574,13 @@ function View(model, controls) {
     this.controls = controls;
     this.updating = false;
 
+    var plugins = $.plot.plugins;
+    var mouse = null;
+    plugins.forEach(function (v) {
+        if (v.name == "mouse") mouse = v;
+    });
+    var findNearbyItemDefault = mouse.options.series.nearBy.findItem;
+
     this.update = function () {
         this.updating = true;
         $("#n").text(this.model.n);
@@ -583,10 +600,12 @@ function View(model, controls) {
     this.replot = function () {
         var fdata = [];
         var idata = [];
+        var adata = [];
         var ddata = [];
         var Ldata = [];
         var wdata = [];
         var nodes = [];
+        var anodes = [];
 
         var i, x;
         var maxdiff = 0;
@@ -605,6 +624,7 @@ function View(model, controls) {
             fdata.push([x, fv]);
 
             idata.push([x, m.inter[i]]);
+            adata.push([x, m.alter[i]]);
 
             var diff = Math.abs(m.func[i] - m.inter[i]);
             ddata.push([x, diff]);
@@ -632,8 +652,10 @@ function View(model, controls) {
             }
         }
         var maxaw = Math.max(maxw, -minw);
-        for (i = 0; i < m.n; i++)
+        for (i = 0; i < m.n; i++) {
             nodes.push([m.xk[i], m.yk[i]]);
+            anodes.push([m.xk[i], m.zk[i]]);
+        }
 
         if (this.model.show == "graph")
             $.plot($("#plot"), [
@@ -709,6 +731,29 @@ function View(model, controls) {
                     ] }
 
                 });
+        if (this.model.show == "sense")
+            $.plot($("#plot"), [
+                    { label: "Исходный интерполянт", data: idata },
+                    { label: "Исходные узлы интерполяции", data: nodes, points: {show: true} },
+                    { label: "Измененный интерполянт", data: adata },
+                    { label: "Измененные узлы интерполяции", data: anodes, points: {show: true}, editable: true, editMode: "y"}
+                ],
+                {
+                    yaxis: { min: minf - 0.1 * (maxf - minf), max: maxf + 0.1 * (maxf - minf) },
+                    grid: {
+                        editable: true,
+                        markings: [
+                        {xaxis: {from: m.a0, to: m.a}},
+                        {xaxis: {to: m.b0, from: m.b}}
+                    ] },
+                    series: { nearBy: {
+                        findItem: function (mouseX,mouseY,i,serie) {
+                            if (!serie.editable) return null;
+                            return findNearbyItemDefault(mouseX, mouseY, i, serie);
+                        }
+                    }
+                } }
+            );
     };
 }
 
@@ -801,14 +846,16 @@ $(function () {
         view.update()
     });
     $("#show").buttonset();
-    $("#graph, #difference, #lebesgue, #omega").click(function () {
+    $("#graph, #difference, #lebesgue, #omega, #sense").click(function () {
         if (view.updating) return;
+        model.minor_update = true;
         model.show_mode($("#show :radio:checked").attr("id"));
         view.update()
     });
     $("#method").buttonset();
     $("#slae, #lagrange, #newtonleft, #newtonright, #special").click(function () {
         if (view.updating) return;
+        model.minor_update = true;
         model.set_method($("#method :radio:checked").attr("id"));
         view.update()
     });
@@ -819,6 +866,14 @@ $(function () {
         model.set_func($("#f").val());
         view.update()
     })
+
+    $("#plot").bind("datadrop", function (event, pos, item) {
+        console.log("datadrop");
+        if (view.updating) return;
+        model.minor_update = true;
+        model.set_altered_val(item.dataIndex, pos.y1);
+        view.update();
+    });
 
     view.update();
 })
